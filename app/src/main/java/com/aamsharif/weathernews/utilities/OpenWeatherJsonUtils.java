@@ -98,7 +98,7 @@ public final class OpenWeatherJsonUtils {
          * day, we're going to take advantage of that to get a nice normalized UTC date for all of
          * our weather.
          */
-        long normalizedUtcStartDay = WeatherNewsDateUtils.getNormalizedUtcDateForToday();
+        long normalizedUtcStartDay = WeatherNewsDateUtils.getNormalizedUtcMsForToday();
 
         for (int i = 0; i < jsonWeatherArray.length(); i++) {
 
