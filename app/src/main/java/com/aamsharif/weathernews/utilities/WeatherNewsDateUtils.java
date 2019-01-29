@@ -8,6 +8,7 @@ import android.content.Context;
 import android.text.format.DateUtils;
 
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
@@ -33,7 +34,7 @@ public final class WeatherNewsDateUtils {
      * @return The number of milliseconds (UTC / GMT) for today's date at midnight in the local
      * time zone
      */
-    public static long getNormalizedUtcDateForToday() {
+    public static long getNormalizedUtcMsForToday() {
 
         long utcNowMillis = System.currentTimeMillis();
 
@@ -59,9 +60,12 @@ public final class WeatherNewsDateUtils {
         // This method simply converts milliseconds to days, disregarding any fractional days
         long daysSinceEpochLocal = TimeUnit.MILLISECONDS.toDays(timeSinceEpochLocalTimeMillis);
 
-        long normalizedUtcMidnightMillis = TimeUnit.DAYS.toMillis(daysSinceEpochLocal);
+        return TimeUnit.DAYS.toMillis(daysSinceEpochLocal);
+    }
 
-        return normalizedUtcMidnightMillis;
+    public static Date getNormalizedUtcDateForToday() {
+        long normalizedMilli = getNormalizedUtcMsForToday();
+        return new Date(normalizedMilli);
     }
 
     /**
@@ -91,8 +95,7 @@ public final class WeatherNewsDateUtils {
      */
     public static long normalizeDate(long date) {
         long daysSinceEpoch = elapsedDaysSinceEpoch(date);
-        long millisFromEpochToTodayAtMidnightUtc = daysSinceEpoch * DAY_IN_MILLIS;
-        return millisFromEpochToTodayAtMidnightUtc;
+        return daysSinceEpoch * DAY_IN_MILLIS;
     }
 
     /**
@@ -125,8 +128,7 @@ public final class WeatherNewsDateUtils {
         TimeZone timeZone = TimeZone.getDefault();
         // This offset, in milliseconds, when added to a UTC date time, will produce the local time
         long gmtOffset = timeZone.getOffset(normalizedUtcDate);
-        long localMidnightMillis = normalizedUtcDate + gmtOffset;
-        return localMidnightMillis;
+        return normalizedUtcDate + gmtOffset;
     }
 
     /**
