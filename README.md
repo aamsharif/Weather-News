@@ -12,9 +12,13 @@ Users can
 
 
 Tools and Technologies used
-  * Loaders
+  * MVVM architecture
+  * LiveData
+  * ViewModel
+  * Room database
   * IntentService
+  * Executor (for simple multithreading)
   * JSON data parsing
-  * ContentProvider
-  * SQLite database
+  * FirebaseJobDispatcher
+  * OkHttp
   * Open Weather Map API
