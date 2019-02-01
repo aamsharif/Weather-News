@@ -1,15 +1,15 @@
 package com.aamsharif.weathernews.data.database;
 
+import android.arch.persistence.room.Entity;
+import android.arch.persistence.room.Ignore;
+import android.arch.persistence.room.Index;
+import android.arch.persistence.room.PrimaryKey;
+
 import java.util.Date;
-
-import androidx.room.Entity;
-import androidx.room.Ignore;
-import androidx.room.Index;
-import androidx.room.PrimaryKey;
-
 /**
  * Created by A. A. M. Sharif on 28-Jan-19.
  */
+
 // date column is unique
 @Entity(tableName = "weather", indices = {@Index(value = {"date"}, unique = true)})
 public class WeatherEntry {

@@ -3,11 +3,10 @@ package com.aamsharif.weathernews.data;
 /**
  * Created by A. A. M. Sharif on 20-Jan-18.
  */
+import com.aamsharif.weathernews.R;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
-
-import com.aamsharif.weathernews.R;
 
 public final class WeatherNewsPreferences {
     /*
@@ -86,7 +85,6 @@ public final class WeatherNewsPreferences {
         if (metric.equals(preferredUnits)) {
             userPrefersMetric = true;
         }
-
         return userPrefersMetric;
     }
 
@@ -128,7 +126,6 @@ public final class WeatherNewsPreferences {
         if (spContainLatitude && spContainLongitude) {
             spContainBothLatitudeAndLongitude = true;
         }
-
         return spContainBothLatitudeAndLongitude;
     }
 
@@ -156,9 +153,7 @@ public final class WeatherNewsPreferences {
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
 
         // If a value is stored with the key, we extract it here. If not, use a default.
-        boolean shouldDisplayNotifications = sp
-                .getBoolean(displayNotificationsKey, shouldDisplayNotificationsByDefault);
-        return shouldDisplayNotifications;
+        return sp.getBoolean(displayNotificationsKey, shouldDisplayNotificationsByDefault);
     }
 
     /**
@@ -184,9 +179,7 @@ public final class WeatherNewsPreferences {
          * time of the last notification was 0, the difference will always be greater than the
          * number of milliseconds in a day and we will show another notification.
          */
-        long lastNotificationTime = sp.getLong(lastNotificationKey, 0);
-
-        return lastNotificationTime;
+        return sp.getLong(lastNotificationKey, 0);
     }
 
     /**
@@ -200,8 +193,7 @@ public final class WeatherNewsPreferences {
     public static long getEllapsedTimeSinceLastNotification(Context context) {
         long lastNotificationTimeMillis =
                 WeatherNewsPreferences.getLastNotificationTimeInMillis(context);
-        long timeSinceLastNotification = System.currentTimeMillis() - lastNotificationTimeMillis;
-        return timeSinceLastNotification;
+        return System.currentTimeMillis() - lastNotificationTimeMillis;
     }
 
     /**

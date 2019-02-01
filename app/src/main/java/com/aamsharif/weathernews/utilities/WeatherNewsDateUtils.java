@@ -3,7 +3,7 @@ package com.aamsharif.weathernews.utilities;
 /**
  * Created by A. A. M. Sharif on 20-Jan-18.
  */
-
+import com.aamsharif.weathernews.R;
 import android.content.Context;
 import android.text.format.DateUtils;
 
@@ -12,7 +12,6 @@ import java.util.Date;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
-import com.aamsharif.weathernews.R;
 
 /**
  * Class for handling date conversions that are useful for Weather News.
@@ -116,19 +115,36 @@ public final class WeatherNewsDateUtils {
     }
 
     /**
-     * This method will return the local time midnight for the provided normalized UTC date.
+     * This method will return UTC date from the local time after adjusting the time zone difference
      *
-     * @param normalizedUtcDate UTC time at midnight for a given date. This number comes from the
-     *                          database
+     * @param localizedTime normalized local time comes from the database
      *
-     * @return The local date corresponding to the given normalized UTC date
+     * @return The UTC date from local date
      */
-    private static long getLocalMidnightFromNormalizedUtcDate(long normalizedUtcDate) {
+    private static long getUtcDateFromLocalMidnight(long localizedTime) {
         // The timeZone object will provide us the current user's time zone offset
         TimeZone timeZone = TimeZone.getDefault();
-        // This offset, in milliseconds, when added to a UTC date time, will produce the local time
-        long gmtOffset = timeZone.getOffset(normalizedUtcDate);
-        return normalizedUtcDate + gmtOffset;
+        // This offset, in milliseconds, when added to a UTC date time, will produce the local time.
+        // But, we may subtract it to adjust it for subsequent daysFromEpochToToday
+        long gmtOffset = timeZone.getOffset(localizedTime);
+
+        if(isSubtractionNeeded())
+            return localizedTime - gmtOffset;
+        else return localizedTime + gmtOffset;
+    }
+
+    /**
+     * helper method to decide whether we are in between midnight and (midnight + GMT) or not
+     *
+     * @return true if current local time is in between midnight and (midnight + GMT)
+     */
+    private static boolean isSubtractionNeeded() {
+        long normalizedTime = getNormalizedUtcMsForToday();
+        TimeZone currentTimeZone = TimeZone.getDefault();
+        long currentTime = System.currentTimeMillis();
+        long gmtOffsetMillis = currentTimeZone.getOffset(currentTime);
+        long localTime = currentTime + gmtOffsetMillis;
+        return (localTime >= normalizedTime && localTime < normalizedTime + gmtOffsetMillis);
     }
 
     /**
@@ -142,7 +158,7 @@ public final class WeatherNewsDateUtils {
      * For all days after that: "Mon, Jan 7"
      *
      * @param context               Context to use for resource localization
-     * @param normalizedUtcMidnight The date in milliseconds (UTC midnight)
+     * @param localizedTime The date in milliseconds (UTC midnight)
      * @param showFullDate          Used to show a fuller-version of the date, which always
      *                              contains either the day of the week, today, or tomorrow, in
      *                              addition to the date.
@@ -150,15 +166,14 @@ public final class WeatherNewsDateUtils {
      * @return A user-friendly representation of the date such as "Today, Jan 7", "Tomorrow",
      * "Wednesday" or "Mon, Jan 7"
      */
-    public static String getFriendlyDateString(Context context, long normalizedUtcMidnight, boolean showFullDate) {
+    public static String getFriendlyDateString(Context context, long localizedTime, boolean showFullDate) {
 
         /*
          * Since we normalized the date when we inserted it into the database, we need to take
          * that normalized date and produce a date (in UTC time) that represents the local time
          * zone at midnight.
          */
-        long localDate = getLocalMidnightFromNormalizedUtcDate(normalizedUtcMidnight);
-
+        long localDate = getUtcDateFromLocalMidnight(localizedTime);
         /*
          * In order to determine which day of the week we are creating a date string for, we need
          * to compare the number of days that have passed since the epoch (January 1, 1970 at

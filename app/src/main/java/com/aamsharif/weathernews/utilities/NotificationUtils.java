@@ -8,39 +8,16 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.net.Uri;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 import android.support.v4.content.ContextCompat;
-
-import com.aamsharif.weathernews.DetailActivity;
 import com.aamsharif.weathernews.R;
+import com.aamsharif.weathernews.ui.detail.DetailActivity;
 import com.aamsharif.weathernews.data.WeatherNewsPreferences;
-import com.aamsharif.weathernews.data.WeatherContract;
 
 public class NotificationUtils {
-
-    /*
-     * The columns of data that we are interested in displaying within our notification to let
-     * the user know there is new weather data available.
-     */
-    public static final String[] WEATHER_NOTIFICATION_PROJECTION = {
-            WeatherContract.WeatherEntry.COLUMN_WEATHER_ID,
-            WeatherContract.WeatherEntry.COLUMN_MAX_TEMP,
-            WeatherContract.WeatherEntry.COLUMN_MIN_TEMP,
-    };
-
-    /*
-     * We store the indices of the values in the array of Strings above to more quickly be able
-     * to access the data from our query.
-     */
-    public static final int INDEX_WEATHER_ID = 0;
-    public static final int INDEX_MAX_TEMP = 1;
-    public static final int INDEX_MIN_TEMP = 2;
-
     /*
      * This notification ID can be used to access our notification after we've displayed it. This
      * can be useful when we need to cancel the notification, or perhaps update it. This number is
@@ -51,82 +28,58 @@ public class NotificationUtils {
     /**
      * Constructs and displays a notification for the newly updated weather for today.
      *
-     * @param context Context used to query our ContentProvider and use various Utility methods
+     * @param context Context used to build notification and use with various Utility methods
      */
-    public static void notifyUserOfNewWeather(Context context) {
+    public static void notifyUserOfNewWeather(Context context, int weatherId, double high, double low, long todaysTimestamp) {
 
-        // Build the URI for today's weather in order to show up to date data in notification
-        Uri todaysWeatherUri = WeatherContract.WeatherEntry
-                .buildWeatherUriWithDate(WeatherNewsDateUtils.normalizeDate(System.currentTimeMillis()));
+        Resources resources = context.getResources();
+        int largeArtResourceId = WeatherUtils.getLargeArtResourceIdForWeatherCondition(weatherId);
 
-        Cursor todayWeatherCursor = context.getContentResolver().query(
-                todaysWeatherUri,
-                WEATHER_NOTIFICATION_PROJECTION,
-                null,
-                null,
-                null);
+        Bitmap largeIcon = BitmapFactory.decodeResource(
+                resources,
+                largeArtResourceId);
+
+        String notificationTitle = context.getString(R.string.app_name);
+
+        String notificationText = getNotificationText(context, weatherId, high, low);
+
+        // getSmallArtResourceIdForWeatherCondition returns the proper art to show given an ID
+        int smallArtResourceId = WeatherUtils.getSmallArtResourceIdForWeatherCondition(weatherId);
+
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(context)
+                .setColor(ContextCompat.getColor(context, R.color.colorPrimary))
+                .setSmallIcon(smallArtResourceId)
+                .setLargeIcon(largeIcon)
+                .setContentTitle(notificationTitle)
+                .setContentText(notificationText)
+                .setAutoCancel(true);
 
         /*
-         * If todayWeatherCursor is empty, moveToFirst will return false. If our cursor is not
-         * empty, we want to show the notification.
+         * This Intent will be triggered when the user clicks the notification. In our case,
+         * we want Weather News to open the DetailActivity to display the newly updated weather.
          */
-        if (todayWeatherCursor.moveToFirst()) {
+        Intent detailIntentForToday = new Intent(context, DetailActivity.class);
+        detailIntentForToday.putExtra(DetailActivity.WEATHER_ID_EXTRA, todaysTimestamp);
 
-            // Weather ID as returned by API, used to identify the icon to be used
-            int weatherId = todayWeatherCursor.getInt(INDEX_WEATHER_ID);
-            double high = todayWeatherCursor.getDouble(INDEX_MAX_TEMP);
-            double low = todayWeatherCursor.getDouble(INDEX_MIN_TEMP);
 
-            Resources resources = context.getResources();
-            int largeArtResourceId = WeatherUtils.getLargeArtResourceIdForWeatherCondition(weatherId);
+        TaskStackBuilder taskStackBuilder = TaskStackBuilder.create(context);
+        taskStackBuilder.addNextIntentWithParentStack(detailIntentForToday);
+        PendingIntent resultPendingIntent = taskStackBuilder
+                .getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
 
-            Bitmap largeIcon = BitmapFactory.decodeResource(
-                    resources,
-                    largeArtResourceId);
+        notificationBuilder.setContentIntent(resultPendingIntent);
 
-            String notificationTitle = context.getString(R.string.app_name);
+        NotificationManager notificationManager = (NotificationManager)
+                context.getSystemService(Context.NOTIFICATION_SERVICE);
 
-            String notificationText = getNotificationText(context, weatherId, high, low);
+        // WEATHER_NOTIFICATION_ID allows us to update or cancel the notification later on
+        notificationManager.notify(WEATHER_NOTIFICATION_ID, notificationBuilder.build());
 
-            // getSmallArtResourceIdForWeatherCondition returns the proper art to show given an ID
-            int smallArtResourceId = WeatherUtils.getSmallArtResourceIdForWeatherCondition(weatherId);
-
-            NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(context)
-                    .setColor(ContextCompat.getColor(context,R.color.colorPrimary))
-                    .setSmallIcon(smallArtResourceId)
-                    .setLargeIcon(largeIcon)
-                    .setContentTitle(notificationTitle)
-                    .setContentText(notificationText)
-                    .setAutoCancel(true);
-
-            /*
-             * This Intent will be triggered when the user clicks the notification. In our case,
-             * we want Weather News to open the DetailActivity to display the newly updated weather.
-             */
-            Intent detailIntentForToday = new Intent(context, DetailActivity.class);
-            detailIntentForToday.setData(todaysWeatherUri);
-
-            TaskStackBuilder taskStackBuilder = TaskStackBuilder.create(context);
-            taskStackBuilder.addNextIntentWithParentStack(detailIntentForToday);
-            PendingIntent resultPendingIntent = taskStackBuilder
-                    .getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
-
-            notificationBuilder.setContentIntent(resultPendingIntent);
-
-            NotificationManager notificationManager = (NotificationManager)
-                    context.getSystemService(Context.NOTIFICATION_SERVICE);
-
-            // WEATHER_NOTIFICATION_ID allows us to update or cancel the notification later on
-            notificationManager.notify(WEATHER_NOTIFICATION_ID, notificationBuilder.build());
-
-            /*
-             * Since we just showed a notification, save the current time. That way, we can check
-             * next time the weather is refreshed if we should show another notification.
-             */
-            WeatherNewsPreferences.saveLastNotificationTime(context, System.currentTimeMillis());
-        }
-
-        todayWeatherCursor.close();
+        /*
+         * Since we just showed a notification, save the current time. That way, we can check
+         * next time the weather is refreshed if we should show another notification.
+         */
+        WeatherNewsPreferences.saveLastNotificationTime(context, System.currentTimeMillis());
     }
 
     /**
@@ -154,11 +107,9 @@ public class NotificationUtils {
 
         String notificationFormat = context.getString(R.string.format_notification);
 
-        String notificationText = String.format(notificationFormat,
+        return String.format(notificationFormat,
                 shortDescription,
                 WeatherUtils.formatTemperature(context, high),
                 WeatherUtils.formatTemperature(context, low));
-
-        return notificationText;
     }
 }

@@ -6,7 +6,6 @@ package com.aamsharif.weathernews.utilities;
 
 import android.content.Context;
 import android.util.Log;
-
 import com.aamsharif.weathernews.R;
 import com.aamsharif.weathernews.data.WeatherNewsPreferences;
 
@@ -81,12 +80,12 @@ public final class WeatherUtils {
      *
      * @return Wind String in the following form: "2 km/h SW"
      */
-    public static String getFormattedWind(Context context, float windSpeed, float degrees) {
+    public static String getFormattedWind(Context context, double windSpeed, double degrees) {
         int windFormat = R.string.format_wind_kmh;
 
         if (!WeatherNewsPreferences.isMetric(context)) {
             windFormat = R.string.format_wind_mph;
-            windSpeed = .621371192237334f * windSpeed;
+            windSpeed = .621371192237334 * windSpeed;
         }
 
         String direction = "Unknown";

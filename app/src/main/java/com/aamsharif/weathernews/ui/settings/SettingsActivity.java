@@ -1,9 +1,9 @@
-package com.aamsharif.weathernews;
+package com.aamsharif.weathernews.ui.settings;
 
 /**
  * Created by A. A. M. Sharif on 22-Jan-18.
  */
-
+import com.aamsharif.weathernews.R;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;

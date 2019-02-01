@@ -1,4 +1,4 @@
-package com.aamsharif.weathernews;
+package com.aamsharif.weathernews.ui.settings;
 
 /**
  * Created by A. A. M. Sharif on 21-Jan-18.
@@ -12,10 +12,9 @@ import android.support.v7.preference.ListPreference;
 import android.support.v7.preference.Preference;
 import android.support.v7.preference.PreferenceFragmentCompat;
 import android.support.v7.preference.PreferenceScreen;
-
+import com.aamsharif.weathernews.R;
 import com.aamsharif.weathernews.data.WeatherNewsPreferences;
-import com.aamsharif.weathernews.data.WeatherContract;
-import com.aamsharif.weathernews.sync.WeatherNewsSyncUtils;
+import com.aamsharif.weathernews.utilities.InjectorUtils;
 
 /**
  * The SettingsFragment serves as the display for all of the user's settings. In Weather News, the
@@ -82,10 +81,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements
         if (key.equals(getString(R.string.pref_location_key))) {
             // The location have changed
             WeatherNewsPreferences.resetLocationCoordinates(activity);
-            WeatherNewsSyncUtils.startImmediateSync(activity);
-        } else if (key.equals(getString(R.string.pref_units_key))) {
-            // Units have changed
-            activity.getContentResolver().notifyChange(WeatherContract.WeatherEntry.CONTENT_URI, null);
+            InjectorUtils.provideNetworkDataSource(activity).startFetchWeatherService();
         }
         Preference preference = findPreference(key);
         if (null != preference) {

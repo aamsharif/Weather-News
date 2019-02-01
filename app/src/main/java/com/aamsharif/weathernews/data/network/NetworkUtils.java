@@ -1,4 +1,4 @@
-package com.aamsharif.weathernews.utilities;
+package com.aamsharif.weathernews.data.network;
 
 /**
  * Created by A. A. M. Sharif on 21-Jan-18.
