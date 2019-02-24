@@ -1,15 +1,15 @@
 package com.aamsharif.weathernews.data.database;
 
-import android.arch.persistence.room.Database;
-import android.arch.persistence.room.Room;
-import android.arch.persistence.room.RoomDatabase;
-import android.arch.persistence.room.TypeConverters;
+import androidx.room.Database;
+import androidx.room.Room;
+import androidx.room.RoomDatabase;
+import androidx.room.TypeConverters;
 import android.content.Context;
 
 /**
  * Created by A. A. M. Sharif on 28-Jan-19.
  */
-@Database(entities = {WeatherEntry.class}, version = 1)
+@Database(entities = {WeatherEntry.class}, version = 1, exportSchema = false)
 @TypeConverters(DateConverter.class)
 public abstract class WeatherNewsDatabase extends RoomDatabase {
 

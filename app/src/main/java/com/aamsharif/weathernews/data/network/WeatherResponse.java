@@ -4,7 +4,7 @@ package com.aamsharif.weathernews.data.network;
  * Created by A. A. M. Sharif on 29-Jan-19.
  */
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import com.aamsharif.weathernews.data.database.WeatherEntry;
 

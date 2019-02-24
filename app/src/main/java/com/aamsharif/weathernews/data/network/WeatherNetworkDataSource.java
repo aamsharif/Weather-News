@@ -4,8 +4,14 @@ package com.aamsharif.weathernews.data.network;
  * Created by A. A. M. Sharif on 29-Jan-19.
  */
 
-import android.arch.lifecycle.LiveData;
-import android.arch.lifecycle.MutableLiveData;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
+import androidx.work.Constraints;
+import androidx.work.ExistingPeriodicWorkPolicy;
+import androidx.work.NetworkType;
+import androidx.work.PeriodicWorkRequest;
+import androidx.work.WorkManager;
+
 import android.content.Context;
 import android.content.Intent;
 import android.text.format.DateUtils;
@@ -15,13 +21,6 @@ import com.aamsharif.weathernews.AppExecutors;
 import com.aamsharif.weathernews.data.WeatherNewsPreferences;
 import com.aamsharif.weathernews.data.database.WeatherEntry;
 import com.aamsharif.weathernews.utilities.NotificationUtils;
-import com.firebase.jobdispatcher.Constraint;
-import com.firebase.jobdispatcher.Driver;
-import com.firebase.jobdispatcher.FirebaseJobDispatcher;
-import com.firebase.jobdispatcher.GooglePlayDriver;
-import com.firebase.jobdispatcher.Job;
-import com.firebase.jobdispatcher.Lifetime;
-import com.firebase.jobdispatcher.Trigger;
 
 import java.net.URL;
 import java.util.concurrent.TimeUnit;
@@ -38,8 +37,8 @@ public class WeatherNetworkDataSource {
     // Interval at which to sync with the weather. Use TimeUnit for convenience, rather than
     // writing out a bunch of multiplication ourselves and risk making a silly mistake.
     private static final int SYNC_INTERVAL_HOURS = 3;
-    private static final int SYNC_INTERVAL_SECONDS = (int) TimeUnit.HOURS.toSeconds(SYNC_INTERVAL_HOURS);
-    private static final int SYNC_FLEXTIME_SECONDS = SYNC_INTERVAL_SECONDS / 3;
+    private static final long SYNC_INTERVAL_SECONDS = TimeUnit.HOURS.toSeconds(SYNC_INTERVAL_HOURS);
+    private static final long SYNC_FLEXTIME_SECONDS = SYNC_INTERVAL_SECONDS / 3;
     private static final String WEATHER_NEWS_SYNC_TAG = "weathernews-sync";
 
     // For Singleton instantiation
@@ -89,35 +88,22 @@ public class WeatherNetworkDataSource {
      * Schedules a repeating job service which fetches Weather News's weather data using FirebaseJobDispatcher.
      */
     public void scheduleRecurringFetchWeatherSync() {
-        Driver driver = new GooglePlayDriver(mContext);
-        FirebaseJobDispatcher dispatcher = new FirebaseJobDispatcher(driver);
-
-        // Create the Job to periodically sync Weather News
-        Job syncWeatherNewsJob = dispatcher.newJobBuilder()
-                // The Service that will be used to sync Weather News's data
-                .setService(WeatherNewsFirebaseJobService.class)
-                // Set the UNIQUE tag used to identify this Job
-                .setTag(WEATHER_NEWS_SYNC_TAG)
-                // Network constraints on which this Job should run
-                .setConstraints(Constraint.ON_ANY_NETWORK)
-                .setLifetime(Lifetime.FOREVER)
-                /*
-                 * We want Weather News's weather data to stay up to date, so we tell this Job
-                 * to recur.
-                 */
-                .setRecurring(true)
-                // We want the weather data to be synced every 3 to 4 hours
-                .setTrigger(Trigger.executionWindow(
-                        SYNC_INTERVAL_SECONDS,
-                        SYNC_INTERVAL_SECONDS + SYNC_FLEXTIME_SECONDS))
-                /*
-                 * If a Job with the tag with provided already exists, this new job will replace
-                 * the old one.
-                 */
-                .setReplaceCurrent(true)
+        Constraints constraints = new Constraints.Builder()
+                // Any working network connection is required for this work
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build();
+        // We want the weather data to be synced every 3 to 4 hours
+        PeriodicWorkRequest workRequest = new PeriodicWorkRequest.Builder(FetchWorker.class,
+                SYNC_INTERVAL_SECONDS + SYNC_FLEXTIME_SECONDS, TimeUnit.SECONDS,
+                SYNC_FLEXTIME_SECONDS, TimeUnit.SECONDS)
+                .setConstraints(constraints)
                 .build();
 
-        dispatcher.schedule(syncWeatherNewsJob);
+        WorkManager.getInstance()
+                // If any pending (uncompleted) work with the same unique name already exists,
+                // then, replace that pending work with the newly-specified work.
+                // Also, set the UNIQUE tag used to identify this work
+                .enqueueUniquePeriodicWork(WEATHER_NEWS_SYNC_TAG, ExistingPeriodicWorkPolicy.REPLACE, workRequest);
     }
 
     /**

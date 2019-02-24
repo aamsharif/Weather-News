@@ -4,7 +4,7 @@ package com.aamsharif.weathernews.data;
  * Created by A. A. M. Sharif on 29-Jan-19.
  */
 
-import android.arch.lifecycle.LiveData;
+import androidx.lifecycle.LiveData;
 import android.util.Log;
 
 import com.aamsharif.weathernews.AppExecutors;

@@ -4,7 +4,7 @@ package com.aamsharif.weathernews.data.network;
  * Created by A. A. M. Sharif on 21-Jan-18.
  */
 import android.content.Context;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 
 import org.json.JSONArray;
 import org.json.JSONException;

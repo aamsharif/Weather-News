@@ -4,7 +4,7 @@ package com.aamsharif.weathernews.data.database;
  * Created by A. A. M. Sharif on 28-Jan-19.
  */
 
-import android.arch.persistence.room.TypeConverter;
+import androidx.room.TypeConverter;
 
 import java.util.Date;
 /**

@@ -1,7 +1,7 @@
 package com.aamsharif.weathernews.ui.list;
 
-import android.arch.lifecycle.LiveData;
-import android.arch.lifecycle.ViewModel;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.ViewModel;
 
 import com.aamsharif.weathernews.data.WeatherNewsRepository;
 import com.aamsharif.weathernews.data.database.ListWeatherEntry;
