@@ -19,6 +19,6 @@ Tools and Technologies used
   * IntentService
   * Executor (for simple multithreading)
   * JSON data parsing
-  * FirebaseJobDispatcher
+  * WorkManager
   * OkHttp
   * Open Weather Map API
